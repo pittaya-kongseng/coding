@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeVenture - เรียนรู้ Python ผ่านเกม</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts - Prompt & Sarabun -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            overflow-x: hidden;
+        }
+        .code-font {
+            font-family: 'Source Code Pro', monospace;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #161b22;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8b949e;
+        }
+        /* Grid transitions and animations */
+        .character-transition {
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        /* Pulse for target coins */
+        @keyframes pulse-gold {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(234, 179, 8, 0.6)); }
+            50% { transform: scale(1.15); filter: drop-shadow(0 0 10px rgba(234, 179, 8, 0.9)); }
+        }
+        .animate-coin {
+            animation: pulse-gold 1.5s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col justify-between">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-[#161b22] border-b border-[#30363d] px-6 py-3 flex items-center justify-between z-10">
+        <div class="flex items-center space-x-4">
+            <span class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 flex items-center gap-2">
+                <i class="fa-solid fa-cube text-blue-500"></i> CodeVenture
+            </span>
+            <span class="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full font-medium">
+                เวอร์ชัน 20 ด่านจุใจ
+            </span>
+        </div>
+        
+        <!-- Level Progress & Selector -->
+        <div class="flex items-center space-x-3">
+            <button onclick="changeLevel(-1)" id="prevBtn" class="bg-[#21262d] hover:bg-[#30363d] text-gray-300 w-8 h-8 rounded-lg flex items-center justify-center border border-[#30363d] transition">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <div class="bg-[#21262d] border border-[#30363d] px-4 py-1.5 rounded-lg flex items-center space-x-2 text-sm">
+                <span class="text-gray-400">ระดับความยาก:</span>
+                <span id="levelIndicator" class="font-bold text-white">LEVEL 1-1</span>
+            </div>
+            <button onclick="changeLevel(1)" id="nextBtn" class="bg-[#21262d] hover:bg-[#30363d] text-gray-300 w-8 h-8 rounded-lg flex items-center justify-center border border-[#30363d] transition">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <!-- Right System Menu -->
+        <div class="flex items-center space-x-3">
+            <button onclick="openHelpModal()" class="text-gray-400 hover:text-white transition p-2" title="คู่มือการใช้คำสั่ง">
+                <i class="fa-regular fa-circle-question text-xl"></i>
+            </button>
+            <button onclick="resetWholeProgress()" class="text-gray-400 hover:text-red-400 transition p-2" title="ล้างความก้าวหน้าทั้งหมด">
+                <i class="fa-solid fa-arrow-rotate-left text-lg"></i>
+            </button>
+            <div class="h-6 w-px bg-[#30363d]"></div>
+            <span class="text-sm bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-md border border-emerald-500/20 flex items-center gap-1.5">
+                <i class="fa-solid fa-star text-yellow-500"></i> ด่านที่ผ่าน: <span id="totalCoinsCount" class="font-bold">0</span>/20
+            </span>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+        
+        <!-- Left Panel: Code Editor -->
+        <div class="w-full md:w-[42%] bg-[#0d1117] border-r border-[#30363d] flex flex-col h-1/2 md:h-full justify-between">
+            
+            <!-- Code Editor Header -->
+            <div class="bg-[#161b22] px-4 py-2 border-b border-[#30363d] flex items-center justify-between">
+                <div class="flex items-center space-x-2 text-xs text-gray-400 font-medium">
+                    <span class="bg-[#0d1117] px-3 py-1.5 rounded-t-md text-white border-t border-x border-[#30363d] flex items-center gap-1.5">
+                        <i class="fa-brands fa-python text-yellow-500"></i> solution.py
+                    </span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="insertTemplate()" class="text-xs text-gray-400 hover:text-white bg-[#21262d] px-2 py-1 rounded border border-[#30363d] flex items-center gap-1">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> รีเซ็ตตัวอย่างโค้ดด่านนี้
+                    </button>
+                </div>
+            </div>
+
+            <!-- Editor Body with line numbers and textarea -->
+            <div class="flex-1 flex relative text-sm overflow-hidden bg-[#0d1117]">
+                <!-- Line Numbers -->
+                <div class="w-10 bg-[#0d1117] border-r border-[#1f242c] py-4 text-right pr-2 text-[#484f58] select-none code-font leading-6 text-xs" id="lineNumbers">
+                    1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12
+                </div>
+                <!-- Textarea Editor -->
+                <div class="flex-1 relative">
+                    <textarea id="codeEditor" class="w-full h-full bg-transparent resize-none outline-none text-[#c9d1d9] p-4 code-font leading-6 placeholder-[#484f58] align-top text-sm border-none focus:ring-0" 
+                        placeholder="# พิมพ์คำสั่ง Python ที่นี่...&#10;เช่น:&#10;move_forward(3)&#10;turn_right()&#10;move_forward(2)" 
+                        spellcheck="false"
+                        oninput="updateLineNumbers()"></textarea>
+                </div>
+            </div>
+
+            <!-- Hint & Guide helper area -->
+            <div class="bg-[#161b22]/50 border-t border-[#30363d] p-3 text-xs flex flex-col space-y-2">
+                <div class="flex items-center justify-between text-gray-400">
+                    <span class="font-bold text-gray-300"><i class="fa-solid fa-book-open mr-1"></i> คำสั่งคีย์เวิร์ดที่ใช้ได้ในด่านนี้:</span>
+                </div>
+                <div class="flex flex-wrap gap-2 text-[#c9d1d9]" id="availableCommands">
+                    <!-- Loaded dynamically via js -->
+                </div>
+            </div>
+
+            <!-- Console Log / Message Console -->
+            <div class="bg-[#090d13] border-t border-[#30363d] h-28 flex flex-col justify-between">
+                <div class="px-4 py-1 bg-[#161b22] text-[11px] text-[#8b949e] font-mono border-b border-[#21262d] flex items-center gap-1.5">
+                    <i class="fa-solid fa-terminal"></i> CONSOLE LOG
+                </div>
+                <div id="consoleOutput" class="flex-1 p-3 overflow-y-auto text-xs code-font text-emerald-400 whitespace-pre-wrap">
+                    ยินดีต้อนรับสู่ CodeVenture! กดปุ่ม RUN เพื่อเริ่มทดสอบโค้ด
+                </div>
+            </div>
+
+            <!-- Editor Control Bar (Run, Reset) -->
+            <div class="bg-[#161b22] border-t border-[#30363d] p-4 flex items-center justify-between space-x-3">
+                <button onclick="resetLevelState()" class="flex-1 bg-white/5 hover:bg-white/10 active:bg-white/15 text-white py-2.5 px-4 rounded-xl font-semibold border border-[#30363d] transition-all flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-arrow-rotate-left"></i>
+                    <span>รีเซ็ตตำแหน่ง (Reset)</span>
+                </button>
+                <button onclick="runPythonCode()" class="flex-[1.5] bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-black py-2.5 px-6 rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/10 flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-play"></i>
+                    <span>รันโค้ดโปรแกรม (RUN)</span>
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Right Panel: Game Board Grid -->
+        <div class="flex-1 bg-[#0b132b] flex flex-col justify-between p-4 relative overflow-y-auto">
+            
+            <!-- Top Dashboard: Game Objective and Score -->
+            <div class="flex items-center justify-between bg-black/40 backdrop-blur-md p-3 rounded-xl border border-white/5 shadow-inner mb-2 z-10">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-yellow-500/20 text-yellow-400 w-10 h-10 rounded-full flex items-center justify-center border border-yellow-500/30">
+                        <i class="fa-solid fa-coins text-lg animate-coin"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-400 font-medium">คำชี้แนะภารกิจ</div>
+                        <div id="levelObjective" class="text-sm font-bold text-white">เก็บเหรียญทองให้หมดและไปถึงเส้นชัย!</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Coins captured indicator -->
+                    <div class="text-right">
+                        <div class="text-[10px] text-gray-400">เหรียญทองด่านนี้</div>
+                        <div class="text-base font-bold text-yellow-400"><span id="capturedCoins">0</span> / <span id="targetCoins">1</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LEVEL GRAPHICAL MAP AREA (FLEX-CENTERED) -->
+            <div class="flex-1 flex flex-col items-center justify-center my-4">
+                
+                <!-- Main Board Frame -->
+                <div class="relative bg-[#111e42] p-6 rounded-3xl shadow-2xl border border-blue-500/20 max-w-full overflow-auto">
+                    
+                    <!-- Decorative background grid element -->
+                    <div class="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] opacity-20 pointer-events-none"></div>
+                    
+                    <!-- Main grid board wrapper -->
+                    <div id="gameBoard" class="relative grid gap-1 mx-auto">
+                        <!-- Dynamic Grid Cells will be injected here -->
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Bot & Buddy Help Assistant Container -->
+            <div class="bg-slate-900/80 backdrop-blur-sm border border-slate-800 rounded-2xl p-4 flex items-start space-x-3 shadow-lg max-w-xl mx-auto z-10">
+                <div class="relative flex-shrink-0">
+                    <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center border border-blue-400 shadow-md">
+                        <!-- SVG Cute Robot buddy -->
+                        <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <span class="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500"></span>
+                    </span>
+                </div>
+                <div class="flex-1">
+                    <div class="text-xs font-bold text-blue-400 mb-0.5">บัดดี้ หุ่นน้อยใบ้โค้ด</div>
+                    <p id="buddyDialog" class="text-xs text-slate-300 leading-relaxed">
+                        ยินดีต้อนรับเพื่อนยาก! ช่วยเขียนโปรแกรมนำทางให้ฉันเดินไปให้ถึงเหรียญทองหน่อยนะ!
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Help & Tutorial Modal -->
+    <div id="helpModal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-[#161b22] border border-[#30363d] rounded-2xl max-w-lg w-full p-6 text-sm">
+            <div class="flex justify-between items-center pb-3 border-b border-[#30363d] mb-4">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-book-bookmark text-blue-500"></i> คู่มือการเขียนโค้ด Python
+                </h3>
+                <button onclick="closeHelpModal()" class="text-gray-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                <div>
+                    <h4 class="font-bold text-emerald-400 text-xs mb-1 uppercase tracking-wider">1. เคลื่อนที่ไปข้างหน้า</h4>
+                    <p class="text-gray-300 text-xs mb-1">สั่งให้ตัวละครเดินหน้าไปเป็นระยะช่องที่ระบุ:</p>
+                    <code class="bg-[#0d1117] px-2 py-1 rounded text-red-400 code-font text-xs block">move_forward(3)</code>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold text-emerald-400 text-xs mb-1 uppercase tracking-wider">2. การเลี้ยวทิศทาง</h4>
+                    <p class="text-gray-300 text-xs mb-1">เปลี่ยนทิศทางของตัวละคร (เลี้ยวขวา 90 องศา หรือ เลี้ยวซ้าย 90 องศา):</p>
+                    <div class="space-y-1">
+                        <code class="bg-[#0d1117] px-2 py-1 rounded text-red-400 code-font text-xs block">turn_right()</code>
+                        <code class="bg-[#0d1117] px-2 py-1 rounded text-red-400 code-font text-xs block">turn_left()</code>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-emerald-400 text-xs mb-1 uppercase tracking-wider">3. การเขียนวงลูปวนซ้ำ (For Loop)</h4>
+                    <p class="text-gray-300 text-xs mb-1">เมื่อต้องการทำสิ่งเดิมซ้ำๆ หลายรอบ สามารถสั่ง Loop ตามไวยากรณ์ Python ได้:</p>
+                    <pre class="bg-[#0d1117] p-2 rounded text-blue-300 code-font text-xs block">for i in range(3):
+    move_forward(2)
+    turn_right()</pre>
+                </div>
+                
+                <div class="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                    <span class="text-xs font-bold text-blue-400 block mb-1">ข้อระวังการเขียน Python:</span>
+                    <ul class="list-disc pl-4 text-xs text-gray-300 space-y-1">
+                        <li>เว้นวรรค (Indentation) ด้านหน้าคำสั่งย่อยใน `for` ให้เสมอกัน</li>
+                        <li>ระวังตัวอักษรเล็ก-ใหญ่ (Case Sensitivity) ตัวแปรต้องเขียนถูกต้อง</li>
+                    </ul>
+                </div>
+            </div>
+
+            <button onclick="closeHelpModal()" class="w-full mt-6 bg-[#21262d] hover:bg-[#30363d] text-white py-2 rounded-xl transition">
+                เข้าใจแล้ว! ปิดหน้านี้
+            </button>
+        </div>
+    </div>
+
+    <!-- Celebration Success & Level Clear Modal -->
+    <div id="successModal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border border-emerald-500/30 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl shadow-emerald-500/10">
+            <div class="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
+                <i class="fa-solid fa-circle-check text-4xl text-emerald-400 animate-bounce"></i>
+            </div>
+            
+            <h3 class="text-2xl font-bold text-white mb-2">สำเร็จด่านแล้ว! 🎉</h3>
+            <p class="text-slate-400 text-sm mb-6">คุณได้เขียนโค้ดและนำทางบัดดี้เก็บเหรียญจนลุล่วงสุดยอด!</p>
+            
+            <div class="bg-white/5 p-3 rounded-xl mb-6 text-left border border-white/5">
+                <div class="text-[11px] text-gray-400 uppercase tracking-widest font-bold">บันทึกสถิติ</div>
+                <div class="flex justify-between items-center mt-1">
+                    <span class="text-sm text-slate-300">รางวัล:</span>
+                    <span class="text-yellow-400 font-bold flex items-center gap-1">
+                        <i class="fa-solid fa-coins"></i> ผ่านแล้ว 1 ด่านการเรียนรู้!
+                    </span>
+                </div>
+            </div>
+
+            <div class="flex space-x-2">
+                <button onclick="closeSuccessModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-xl transition font-medium text-xs">
+                    อยู่ลองใหม่อีกครั้ง
+                </button>
+                <button onclick="goToNextLevel()" class="flex-[1.5] bg-emerald-500 hover:bg-emerald-600 text-black font-bold py-2.5 rounded-xl transition shadow-lg shadow-emerald-500/20 text-sm">
+                    ไปด่านต่อไป <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Modal (replaces window.alert) -->
+    <div id="alertModal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-[#161b22] border border-[#30363d] rounded-2xl max-w-xs w-full p-5 text-center shadow-xl">
+            <div class="w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-3 text-red-500 border border-red-500/20">
+                <i id="alertIcon" class="fa-solid fa-triangle-exclamation text-xl"></i>
+            </div>
+            <h4 id="alertTitle" class="text-base font-bold text-white mb-1">เกิดข้อผิดพลาด!</h4>
+            <p id="alertMessage" class="text-xs text-gray-400 mb-5 leading-relaxed">
+                โค้ดรันผิดพลาด กรุณาลองใหม่อีกครั้ง
+            </p>
+            <button onclick="closeAlert()" class="w-full bg-[#21262d] hover:bg-[#30363d] text-white py-2 rounded-lg text-xs transition">
+                เข้าใจแล้ว
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript Game Engine Logical System -->
+    <script>
+        // ทั้งหมด 20 ด่าน (4 Worlds เวิลด์ละ 5 ด่านย่อย)
+        // TYPE: 0 = ช่องว่าง (เดินไม่ได้), 1 = พื้นดิน (เดินได้), 2 = เหรียญ (Coin), 3 = จุดสตาร์ท
+        const LEVELS = [
+            // ================= WORLD 1: BASIC MOVEMENTS =================
+            {
+                name: "LEVEL 1-1",
+                desc: "เวิลด์ 1-1: แนะนำให้ตัวละครเดินหน้าตรง 5 ช่องไปกินเหรียญวิเศษ",
+                hint: "ลองเติมตัวเลข 5 ในวงเล็บเพื่อกระโดดผ่าน 5 บล็อกดูนะ! -> move_forward(5)",
+                defaultCode: "# ระดับ 1-1\n# ลองแก้ช่องว่างด้านล่างนี้ให้ใส่เลข 5\nmove_forward(_)\n",
+                allowedCommands: ["move_forward(steps)"],
+                width: 7,
+                height: 1,
+                grid: [
+                    [3, 1, 1, 1, 1, 1, 2]
+                ],
+                startDir: "E",
+                startCol: 0,
+                startRow: 0
+            },
+            {
+                name: "LEVEL 1-2",
+                desc: "เวิลด์ 1-2: ทางเลี้ยวโค้งแรกของบัดดี้",
+                hint: "เดินหน้า 3 ก้าว เลี้ยวซ้าย แล้วเดินหน้าต่ออีก 3 ก้าวเพื่อเก็บเหรียญทองมุมบน",
+                defaultCode: "# ระดับ 1-2\nmove_forward(3)\nturn_left()\nmove_forward(_)\n",
+                allowedCommands: ["move_forward(steps)", "turn_left()"],
+                width: 5,
+                height: 4,
+                grid: [
+                    [0, 0, 0, 0, 2],
+                    [0, 0, 0, 0, 1],
+                    [0, 0, 0, 0, 1],
+                    [3, 1, 1, 1, 1]
+                ],
+                startDir: "E",
+                startCol: 0,
+                startRow: 3
+            },
+            {
+                name: "LEVEL 1-3",
+                desc: "เวิลด์ 1-3: เส้นทางโค้งขดเคี้ยวทรงตัว S",
+                hint: "คุณต้องเลี้ยวขวาและเลี้ยวซ้ายอย่างละหนึ่งครั้งเพื่อเดินตามเส้นทางลัดเลาะ",
+                defaultCode: "# ระดับ 1-3\nmove_forward(1)\nturn_left()\n# เขียนคำสั่งต่อจากนี้ให้ถึงเหรียญทอง\n",
+                allowedCommands: ["move_forward(steps)", "turn_left()", "turn_right()"],
+                width: 6,
+                height: 5,
+                grid: [
+                    [0, 0, 0, 0, 1, 2],
+                    [0, 0, 0, 0, 1, 0],
+                    [0, 1, 1, 1, 1, 0],
+                    [0, 1, 0, 0, 0, 0],
+                    [3, 1, 0, 0, 0, 0]
+                ],
+                startDir: "E",
+                startCol: 0,
+                startRow: 4
+            },
+            {
+                name: "LEVEL 1-4",
+                desc: "เวิลด์ 1-4: ขยับหลบสิ่งกีดขวางรูปตัว Z",
+                hint: "ด่านนี้ห้ามเดินตกเหวสีดำเด็ดขาด! เลี้ยวซ้ายและขวาให้ถูกจังหวะนะ",
+                defaultCode: "# ระดับ 1-4\n",
+                allowedCommands: ["move_forward(steps)", "turn_left()", "turn_right()"],
+                width: 5,
+                height: 5,
+                grid: [
+                    [2, 1, 1, 1, 0],
+                    [0, 0, 0, 1, 0],
+                    [0, 1, 1, 1, 0],
+                    [0, 1, 0, 0, 0],
+                    [0, 3, 0, 0, 0]
+                ],
+                startDir: "N",
+                startCol: 1,
+                startRow: 4
+            },
+            {
+                name: "LEVEL 1-5",
+                desc: "เวิลด์ 1-5: ช่องแคบตัวยูสุดอันตราย",
+                hint: "เส้นทางรอบแผนที่ยาวมาก ต้องเดินอ้อมขึ้นด้านบนแล้วเลี้ยวซ้ายย้อนกลับมา",
+                defaultCode: "# ระดับ 1-5\n",
+                allowedCommands: ["move_forward(steps)", "turn_left()", "turn_right()"],
+                width: 6,
+                height: 6,
+                grid: [
+                    [2, 1, 1, 1, 1, 1],
+                    [0, 0, 0, 0, 0, 1],
+                    [0, 0, 0, 0, 0, 1],
+                    [3, 1, 1, 1, 1, 1],
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0]
+                ],
+                startDir: "E",
+                startCol: 0,
+                startRow: 3
+            },
+
+            // ================= WORLD 2: INTRO TO LOOPS =================
+            {
+                name: "LEVEL 2-1",
+                desc: "เวิลด์ 2-1: ทางตรงยาวกับคำสั่งประหยัดบรรทัดด้วย For Loop",
+                hint: "ใช้ loop: `for i in range(6):` เพื่อสั่งให้บัดดี้เดินทีละ 1 ก้าวซ้ำๆ ทั้งหมด 6 ครั้ง",
+                defaultCode: "# ระดับ 2-1\n# ลองวนลูปเพื่อประหยัดการเขียนคำสั่งเดินซ้ำๆ\nfor i in range(6):\n    move_forward(1)\n",
+                allowedCommands: ["move_forward(steps)", "for i in range(N):"],
+                width: 8,
+                height: 1,
+                grid: [
+                    [3, 1, 1, 1, 1, 1, 1, 2]
+                ],
+                startDir: "E",
+                startCol: 0,
+                startRow: 0
+            },
+            {
+                name: "LEVEL 2-2",
+                desc: "เวิลด์ 2-2: ขึ้นบันไดสุดระทึก (Stairs)",
+                hint: "บันไดมีทั้งหมด 3 ขั้น ลองสั่งลูปทำซ้ำ 'เดินหนา 1 -> เลี้ยวซ้าย -> เดินหน้า 1 -> เลี้ยวขวา' ดูสิ!",
+                defaultCode: "# ระดับ 2-2\nfor i in range(3):\n    move_forward(1)\n    turn_left()\n    move_forward(1)\n    # ลองใส่คำสั่งเพื่อจัดหน้าหันกลับมาทิศเดิม\n",
+                allowedCommands: ["move_forward(steps)", "turn_left()", "turn_right()", "for i in range(N):"],
+                width: 5,
+                height: 5,
+                grid: [
+                    [0, 0, 0, 0, 2],
+                    [0, 0, 0, 1, 1],
+                    [0, 0, 1, 1, 0],
+                    [0, 1, 1, 0, 0],
+                    [3, 1, 0, 0, 0]
+                ],
+                startDir: "E",
+                startCol: 0,
+                startRow: 4
+            },
+            {
+                name: "LEVEL 2-3",
+                desc: "เวิลด์ 2-3: เดินเป็นรูปสี่เหลี่ยมรอบกรอบนอก",
+                hint: "มี 4 ทิศทางที่ต้องเดินเป็นมุมฉาก วงโค้งซ้ำ 4 รอบพอดิบพอดี",
+                defaultCode: "# ระดับ 2-3\nfor i in range(3):\n    move_forward(3)\n    turn_left()\n",
+                allowedCommands: ["move_forward(steps)", "turn_left()", "turn_right()", "for i in range(N):"],
+                width: 4,
+                height: 4,
+                grid: [
+                    [2, 1, 1, 1],
+                    [1, 0, 0, 1],
+                    [1, 0, 0, 1],
+                    [3, 1, 1, 1]
+                ],
+                startDir: "E",
+                startCol: 0,
+                startRow: 3
+            },
+            {
+                name: "LEVEL 2-4",
+                desc: "เวิลด์ 2-4: บันไดคดเคี้ยวสองรอบซ้อน",
+                hint: "บันไดเปลี่ยนมุมให้ชันขึ้น สังเกตจำนวนก้าวและใช้ลูปช่วยลดทอนโค้ด",
+                defaultCode: "# ระดับ 2-4\n",
+                allowedCommands: ["move_forward(steps)", "turn_left()", "turn_right()", "for i in range(N):"],
+                width: 6,
+                height: 6,
+                grid: [
+                    [0, 0, 0, 0, 0, 2],
+                    [0, 0, 0, 0, 1, 1],
+                    [0, 0, 0, 1, 1, 0],
+                    [0, 0, 1, 1, 0, 0],
+                    [0, 1, 1, 0, 0, 0],
+                    [3, 1, 0, 0, 0, 0]
+                ],
+                startDir: "E",
+                startCol: 0,
+                startRow: 5
+            },
+            {
+                name: "LEVEL 2-5",
+                desc: "เวิลด์ 2-5: วนเวียนในสระน้ำสแควร์ม้วนเกลียว",
+                hint: "เป้าหมายอยู่ที่ศูนย์กลางของแผ่นตาราง ค่อย ๆ เดินเกลียวขดเข้าข้างในด้วยชุดคำสั่งวนซ้ำ",
+                defaultCode: "# ระดับ 2-5\n",
+                allowedCommands: ["move_forward(steps)", "turn_left()", "turn_right()", "for i in range(N):"],
+                width: 6,
+                height: 6,
+                grid: [
+                    [3, 1, 1, 1, 1, 1],
+                    [0, 0, 0, 0, 0, 1],
+                    [1, 1, 1, 2, 0, 1],
+                    [1, 0, 0, 0, 0, 1],
+                    [1, 1, 1, 1, 1, 1],
+                    [0, 0, 0, 0, 0, 0]
+                ],
+                startDir: "E",
+                startCol: 0,
+                startRow: 0
+            },
+
+            // ================= WORLD 3: COMPLEX PATTERNS & MULTI COINS =================
+            {
+                name: "LEVEL 3-1",
+                desc: "เวิลด์ 3-1: ขุมทรัพย์เหรียญคู่ซ้ายขวา",
+                hint: "มีเหรียญทอง 2 เหรียญกระจายกันอยู่! เดินหน้าไปเก็บเหรียญขวาก่อน แล้วเดินย้อนกลับมาทางซ้าย",
+                defaultCode: "# ระดับ 3-1\n# เก็บเหรียญแรกทางขวา จากนั้นถอยหลังหรือเลี้ยวหันหัวกลับ\n",
+                allowedCommands: ["move_forward(steps)", "turn_left()", "turn_right()"],
+                width: 7,
+                height: 3,
+                grid: [
+                    [2, 1, 1, 3, 1, 1, 2],
+                    [0, 0, 0, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0]
+                ],
+                startDir: "E",
+                startCol: 3,
+                startRow: 0
+            },
+            {
+                name: "LEVEL 3-2",
+                desc: "เวิลด์ 3-2: บันไดสลับฟันปลาทิศตะวันออก-เหนือ",
+                hint: "ทำซ้ำสเต็ปสลับทิศทาง ด่านนี้เป้าหมายอยู่ไกล ต้องใช้ลูปเดิน 4 รอบเพื่อเก็บเหรียญทอง",
+                defaultCode: "# ระดับ 3-2\nfor i in range(4):\n    move_forward(1)\n    # ลองวางทิศทางต่อ\n",
+                allowedCommands: ["move_forward(steps)", "turn_left()", "turn_right()", "for i in range(N):"],
+                width: 6,
+                height: 6,
+                grid: [
+                    [0, 0, 0, 0, 0, 2],
+                    [0, 0, 0, 0, 1, 1],
+                    [0, 0, 0, 1, 1, 0],
+                    [0, 0, 1, 1, 0, 0],
+                    [0, 1, 1, 0, 0, 0],
+                    [3, 1, 0, 0, 0, 0]
+                ],
+                startDir: "E",
+                startCol: 0,
+                startRow: 5
+            },
+            {
+                name: "LEVEL 3-3",
+                desc: "เวิลด์ 3-3: การสำรวจเกาะลึกลับกากบาท (Crossroad)",
+                hint: "มีเหรียญทอง 2 เหรียญวางไขว้กันที่ขอบสะพาน ย่ำไปรับเหรียญแกนหลักแล้วสลับทิศให้ดี",
+                defaultCode: "# ระดับ 3-3\n",
+                allowedCommands: ["move_forward(steps)", "turn_left()", "turn_right()", "for i in range(N):"],
+                width: 5,
+                height: 5,
+                grid: [
+                    [0, 0, 2, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [3, 1, 1, 1, 2],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 0]
+                ],
+                startDir: "E",
+                startCol: 0,
+                startRow: 2
+            },
+            {
+                name: "LEVEL 3-4",
+                desc: "เวิลด์ 3-4: รันเวย์วนซิกแซกเก็บครบ 3 เหรียญทอง",
+                hint: "สังเกตความห่างของระยะช่องดีๆ ใช้ลูปการวนขวาที่เท่าๆ กันช่วยกวาดเหรียญได้รวดเร็ว",
+                defaultCode: "# ระดับ 3-4\n",
+                allowedCommands: ["move_forward(steps)", "turn_left()", "turn_right()", "for i in range(N):"],
+                width: 7,
+                height: 5,
+                grid: [
+                    [3, 1, 1, 2, 0, 0, 0],
+                    [0, 0, 0, 1, 0, 0, 0],
+                    [0, 0, 0, 1, 1, 1, 2],
+                    [0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 2, 0]
+                ],
+                startDir: "E",
+                startCol: 0,
+                startRow: 0
+            },
+            {
+                name: "LEVEL 3-5",
+                desc: "เวิลด์ 3-5: ค่ายกลวงแหวนมืด (Double Loop)",
+                hint: "เดินล้อมรอบช่องว่างตรงกลางเพื่อผ่านไปรับเหรียญทองที่จุดแมนชั่นขวาสุด",
+                defaultCode: "# ระดับ 3-5\n",
+                allowedCommands: ["move_forward(steps)", "turn_left()", "turn_right()", "for i in range(N):"],
+                width: 6,
+                height: 6,
+                grid: [
+                    [3, 1, 1, 1, 1, 0],
+                    [1, 0, 0, 0, 1, 0],
+                    [1, 0, 2, 0, 1, 0],
+                    [1, 0, 0, 0, 1, 0],
+                    [1, 1, 1, 1, 1, 1],
+                    [0, 0, 0, 0, 0, 2]
+                ],
+                startDir: "S",
+                startCol: 0,
+                startRow: 0
+            },
+
+            // ================= WORLD 4: CHAMPION MASTER PUZZLES =================
+            {
+                name: "LEVEL 4-1",
+                desc: "เวิลด์ 4-1: วงกตทาวเวอร์ขยับขึ้น (Zig-zag Up)",
+                hint: "วนลูปซิกแซก 4 ครั้ง โดยเลี้ยวซ้ายและขวาสลับกัน เพื่อไต่ขึ้นไปสอยเหรียญสูงสุด",
+                defaultCode: "# ระดับ 4-1\n",
+                allowedCommands: ["move_forward(steps)", "turn_left()", "turn_right()", "for i in range(N):"],
+                width: 5,
+                height: 6,
+                grid: [
+                    [0, 0, 0, 0, 2],
+                    [0, 0, 0, 1, 1],
+                    [0, 0, 1, 1, 0],
+                    [0, 1, 1, 0, 0],
+                    [1, 1, 0, 0, 0],
+                    [3, 0, 0, 0, 0]
+                ],
+                startDir: "N",
+                startCol: 0,
+                startRow: 5
+            },
+            {
+                name: "LEVEL 4-2",
+                desc: "เวิลด์ 4-2: สวนดอกไม้ทรงนาฬิกาทราย",
+                hint: "เส้นทางรูปโบว์ไท ต้องเดินเลี้ยวอย่างสมมาตรเพื่อเก็บเหรียญทองตรงปลายทางทั้งสองฟาก",
+                defaultCode: "# ระดับ 4-2\n",
+                allowedCommands: ["move_forward(steps)", "turn_left()", "turn_right()", "for i in range(N):"],
+                width: 5,
+                height: 5,
+                grid: [
+                    [2, 1, 0, 1, 2],
+                    [0, 1, 0, 1, 0],
+                    [0, 3, 1, 1, 0],
+                    [0, 1, 0, 1, 0],
+                    [2, 1, 0, 1, 2]
+                ],
+                startDir: "E",
+                startCol: 1,
+                startRow: 2
+            },
+            {
+                name: "LEVEL 4-3",
+                desc: "เวิลด์ 4-3: วงลูปทวีคูณ (The Spiral Ladder)",
+                hint: "ด่านนี้ท้าทายมาก เพราะขนาดของเส้นทางจะขยายกว้างขึ้นทีละ 1 ช่อง ลองประยุกต์เขียนโปรแกรมแบบเป็นขั้นๆ ดูนะครับ",
+                defaultCode: "# ระดับ 4-3\n",
+                allowedCommands: ["move_forward(steps)", "turn_left()", "turn_right()"],
+                width: 6,
+                height: 6,
+                grid: [
+                    [3, 1, 1, 1, 1, 1],
+                    [0, 0, 0, 0, 0, 1],
+                    [1, 1, 1, 2, 0, 1],
+                    [1, 0, 0, 1, 0, 1],
+                    [1, 1, 1, 1, 0, 1],
+                    [0, 0, 0, 0, 0, 1]
+                ],
+                startDir: "E",
+                startCol: 0,
+                startRow: 0
+            },
+            {
+                name: "LEVEL 4-4",
+                desc: "เวิลด์ 4-4: ตะลุยขุมทรัพย์วงแหวนดาวกระจาย",
+                hint: "มีเหรียญเยอะมาก! วางแผนโค้ดเดินวนรอบตามเข็มนาฬิกาเพื่อเก็บทีละเหรียญทองอย่างชาญฉลาด",
+                defaultCode: "# ระดับ 4-4\n",
+                allowedCommands: ["move_forward(steps)", "turn_left()", "turn_right()", "for i in range(N):"],
+                width: 6,
+                height: 6,
+                grid: [
+                    [2, 1, 1, 1, 1, 2],
+                    [1, 0, 0, 0, 0, 1],
+                    [1, 0, 3, 0, 0, 1],
+                    [1, 0, 1, 0, 0, 1],
+                    [1, 0, 1, 1, 1, 1],
+                    [2, 1, 1, 1, 1, 2]
+                ],
+                startDir: "S",
+                startCol: 2,
+                startRow: 2
+            },
+            {
+                name: "LEVEL 4-5",
+                desc: "เวิลด์ 4-5: ด่านทดสอบสุดยอดแชมป์เขียนโค้ดวงกตยักษ์!",
+                hint: "วงกตลึก 3 ชั้น สลักทับซ้อนกัน ใช้ความพยายามและการวิเคราะห์ทิศทางที่แม่นยำเพื่อเก็บเหรียญทองกลางใจเมือง",
+                defaultCode: "# ระดับ 4-5 ด่านสุดท้ายพิชิตแคมป์ปิ้ง!\n",
+                allowedCommands: ["move_forward(steps)", "turn_left()", "turn_right()", "for i in range(N):"],
+                width: 7,
+                height: 7,
+                grid: [
+                    [3, 1, 1, 1, 1, 1, 1],
+                    [0, 0, 0, 0, 0, 0, 1],
+                    [2, 1, 1, 1, 1, 0, 1],
+                    [1, 0, 0, 0, 1, 0, 1],
+                    [1, 0, 2, 1, 1, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 1, 1, 1, 1, 1]
+                ],
+                startDir: "E",
+                startCol: 0,
+                startRow: 0
+            }
+        ];
+
+        // State System
+        let currentLevelIdx = 0;
+        let charX = 0;
+        let charY = 0;
+        let charDir = "E"; // N, E, S, W
+        let coinsPositions = []; // List of coins in active level
+        let collectedCoinsCount = 0;
+        let runningAnimation = false;
+        let actionsQueue = []; // Actions animation generated by python execution
+        let totalScore = 0;
+
+        // On document load
+        window.onload = function() {
+            // Check cache progress
+            const savedLevel = localStorage.getItem("codeventure_level");
+            if (savedLevel !== null) {
+                currentLevelIdx = parseInt(savedLevel);
+                if (currentLevelIdx >= LEVELS.length) currentLevelIdx = 0;
+            }
+            const savedScore = localStorage.getItem("codeventure_score");
+            if (savedScore !== null) {
+                totalScore = parseInt(savedScore);
+                document.getElementById("totalCoinsCount").textContent = totalScore;
+            }
+
+            loadLevel(currentLevelIdx);
+        };
+
+        // Load targeted level elements
+        function loadLevel(idx) {
+            currentLevelIdx = idx;
+            localStorage.setItem("codeventure_level", idx);
+            
+            const level = LEVELS[idx];
+            
+            // Set Titles/Helps
+            document.getElementById("levelIndicator").textContent = level.name;
+            document.getElementById("levelObjective").textContent = level.desc;
+            document.getElementById("buddyDialog").textContent = level.hint;
+            
+            // Available Commands Guide Box
+            const cmdContainer = document.getElementById("availableCommands");
+            cmdContainer.innerHTML = "";
+            level.allowedCommands.forEach(cmd => {
+                const chip = document.createElement("span");
+                chip.className = "bg-[#21262d] text-emerald-400 px-2 py-1 rounded border border-[#30363d] cursor-pointer hover:bg-emerald-500/10 transition";
+                chip.innerHTML = `<code class="code-font">${cmd}</code>`;
+                chip.onclick = () => {
+                    insertCommand(cmd);
+                };
+                cmdContainer.appendChild(chip);
+            });
+
+            // Set Editor template
+            document.getElementById("codeEditor").value = level.defaultCode;
+            updateLineNumbers();
+
+            // Clear console
+            printConsole("เริ่มเล่นระดับ: " + level.name + "\nพิมพ์คำสั่งของคุณทางฝั่งซ้าย", "info");
+
+            // Build visual grid
+            initGridState(level);
+        }
+
+        // Initialize state inside current grid
+        function initGridState(level) {
+            charX = level.startCol;
+            charY = level.startRow;
+            charDir = level.startDir;
+            collectedCoinsCount = 0;
+            coinsPositions = [];
+
+            // Parse levels for coin objects
+            for (let r = 0; r < level.height; r++) {
+                for (let c = 0; c < level.width; c++) {
+                    if (level.grid[r][c] === 2) {
+                        coinsPositions.push({ x: c, y: r, collected: false });
+                    }
+                }
+            }
+
+            document.getElementById("capturedCoins").textContent = "0";
+            document.getElementById("targetCoins").textContent = coinsPositions.length;
+
+            renderBoard();
+        }
+
+        // Render graphical grids
+        function renderBoard() {
+            const level = LEVELS[currentLevelIdx];
+            const board = document.getElementById("gameBoard");
+            
+            // Dynamic Grid styling based on dimensions
+            board.style.gridTemplateColumns = `repeat(${level.width}, minmax(50px, 60px))`;
+            board.style.gridTemplateRows = `repeat(${level.height}, minmax(50px, 60px))`;
+            
+            board.innerHTML = "";
+
+            // Create grids
+            for (let r = 0; r < level.height; r++) {
+                for (let c = 0; c < level.width; c++) {
+                    const cell = document.createElement("div");
+                    cell.className = "relative rounded-xl border flex items-center justify-center transition-all duration-300 select-none overflow-hidden ";
+                    
+                    const cellType = level.grid[r][c];
+                    
+                    if (cellType === 0) {
+                        // Void Space (Water or empty dark area)
+                        cell.className += "bg-slate-950/80 border-slate-900";
+                    } else {
+                        // Walkable paths
+                        cell.className += "bg-[#182a5c] border-blue-500/10 shadow-inner";
+                    }
+
+                    // Draw Coin if available and not collected
+                    const coinHere = coinsPositions.find(coin => coin.x === c && coin.y === r && !coin.collected);
+                    if (coinHere) {
+                        const coinImg = document.createElement("div");
+                        coinImg.className = "absolute z-10 w-9 h-9 bg-yellow-500 rounded-full flex items-center justify-center border-2 border-yellow-300 shadow-lg shadow-yellow-500/50 animate-coin text-amber-900 font-extrabold text-sm";
+                        coinImg.innerHTML = `<i class="fa-solid fa-star"></i>`;
+                        cell.appendChild(coinImg);
+                    }
+
+                    // Draw Player Character Bot on current dynamic position
+                    if (charX === c && charY === r) {
+                        const player = document.createElement("div");
+                        player.className = "absolute z-20 w-11 h-11 bg-gradient-to-tr from-rose-500 to-amber-400 rounded-2xl flex items-center justify-center border-2 border-white shadow-xl shadow-rose-500/30 character-transition";
+                        
+                        // Add direction indicators (Face)
+                        let rotationClass = "rotate-0";
+                        if (charDir === "E") rotationClass = "rotate-0";
+                        else if (charDir === "S") rotationClass = "rotate-90";
+                        else if (charDir === "W") rotationClass = "rotate-180";
+                        else if (charDir === "N") rotationClass = "-rotate-90";
+                        
+                        player.className += " " + rotationClass;
+
+                        // Robot cute SVG
+                        player.innerHTML = `
+                            <svg class="w-8 h-8 text-white transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <!-- Direction beacon hat pointer -->
+                            <div class="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
+                        `;
+                        cell.appendChild(player);
+                    }
+
+                    board.appendChild(cell);
+                }
+            }
+        }
+
+        // Reset levels without reset overall coins
+        function resetLevelState() {
+            if (runningAnimation) return;
+            initGridState(LEVELS[currentLevelIdx]);
+            printConsole("รีเซ็ตตำแหน่งตัวละครเรียบร้อยแล้ว!", "info");
+        }
+
+        // Change Level Button handlers
+        function changeLevel(dir) {
+            if (runningAnimation) return;
+            let targetIdx = currentLevelIdx + dir;
+            if (targetIdx >= 0 && targetIdx < LEVELS.length) {
+                loadLevel(targetIdx);
+            }
+        }
+
+        // Custom Helper alert
+        function customAlert(title, text, type = "error") {
+            document.getElementById("alertTitle").textContent = title;
+            document.getElementById("alertMessage").textContent = text;
+            
+            const icon = document.getElementById("alertIcon");
+            if (type === "error") {
+                icon.className = "fa-solid fa-triangle-exclamation text-xl";
+                icon.parentElement.className = "w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-3 text-red-500 border border-red-500/20";
+            } else {
+                icon.className = "fa-solid fa-circle-info text-xl";
+                icon.parentElement.className = "w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-3 text-blue-400 border border-blue-500/20";
+            }
+
+            document.getElementById("alertModal").classList.remove("hidden");
+        }
+
+        function closeAlert() {
+            document.getElementById("alertModal").classList.add("hidden");
+        }
+
+        // Level Accomplished triggers
+        function showSuccessClear() {
+            document.getElementById("successModal").classList.remove("hidden");
+            
+            // Count number of unique cleared levels
+            let clearedCount = parseInt(localStorage.getItem("codeventure_cleared_count") || "0");
+            let hasBeenCleared = localStorage.getItem(`codeventure_cleared_level_${currentLevelIdx}`);
+            if (!hasBeenCleared) {
+                localStorage.setItem(`codeventure_cleared_level_${currentLevelIdx}`, "true");
+                clearedCount++;
+                localStorage.setItem("codeventure_cleared_count", clearedCount);
+            }
+            
+            document.getElementById("totalCoinsCount").textContent = clearedCount;
+        }
+
+        function closeSuccessModal() {
+            document.getElementById("successModal").classList.add("hidden");
+        }
+
+        // Go to next levels
+        function goToNextLevel() {
+            closeSuccessModal();
+            if (currentLevelIdx + 1 < LEVELS.length) {
+                loadLevel(currentLevelIdx + 1);
+            } else {
+                customAlert("ฉลองความยินดี 🎉", "คุณพิชิตด่านครบทั้ง 20 ด่านหลักแล้ว ยอดเยี่ยมที่สุดในการเรียนภาษา Python!", "info");
+            }
+        }
+
+        // Console printing utils
+        function printConsole(text, type = "info") {
+            const consoleOutput = document.getElementById("consoleOutput");
+            let prefix = "";
+            let colorClass = "text-[#c9d1d9]";
+            
+            if (type === "error") {
+                prefix = "[Error] ❌ ";
+                colorClass = "text-rose-400";
+            } else if (type === "success") {
+                prefix = "[Success] ⭐ ";
+                colorClass = "text-emerald-400 font-bold";
+            } else if (type === "system") {
+                prefix = "[System] ⚙️ ";
+                colorClass = "text-blue-400";
+            }
+
+            consoleOutput.innerHTML = `<span class="${colorClass}">${prefix}${text}</span>`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        // Auto generation of Line numbers
+        function updateLineNumbers() {
+            const textarea = document.getElementById("codeEditor");
+            const lineNumbers = document.getElementById("lineNumbers");
+            const lines = textarea.value.split('\n');
+            const maxLines = Math.max(lines.length, 12);
+            let numHTML = '';
+            for (let i = 1; i <= maxLines; i++) {
+                numHTML += i + '<br>';
+            }
+            lineNumbers.innerHTML = numHTML;
+        }
+
+        // Insert code template directly in text cursor
+        function insertCommand(cmd) {
+            const textarea = document.getElementById("codeEditor");
+            let cleanCmd = cmd;
+            if (cmd === "move_forward(steps)") cleanCmd = "move_forward(1)";
+            else if (cmd === "for i in range(N):") cleanCmd = "for i in range(3):\n    move_forward(1)";
+
+            const startPos = textarea.selectionStart;
+            const endPos = textarea.selectionEnd;
+            textarea.value = textarea.value.substring(0, startPos) + cleanCmd + textarea.value.substring(endPos, textarea.value.length);
+            textarea.focus();
+            updateLineNumbers();
+        }
+
+        function insertTemplate() {
+            const level = LEVELS[currentLevelIdx];
+            document.getElementById("codeEditor").value = level.defaultCode;
+            updateLineNumbers();
+        }
+
+        // Full Interactive Parser Simulator for Python (REBUILT FOR COMPILATION FIXES)
+        function runPythonCode() {
+            if (runningAnimation) return;
+
+            const codeText = document.getElementById("codeEditor").value;
+            printConsole("กำลังแปลงโค้ด Python และวิเคราะห์...", "system");
+
+            // Reset level to initial state before simulated running
+            const level = LEVELS[currentLevelIdx];
+            charX = level.startCol;
+            charY = level.startRow;
+            charDir = level.startDir;
+            collectedCoinsCount = 0;
+            
+            // Reload coins
+            coinsPositions.forEach(coin => coin.collected = false);
+            renderBoard();
+
+            // Setup actions queue
+            actionsQueue = [];
+            
+            // Build AST or simple line instructions
+            const lines = codeText.split('\n');
+            let hasError = false;
+            let errorText = "";
+
+            // Parser simulator state loop
+            let i = 0;
+            while (i < lines.length) {
+                let rawLine = lines[i];
+                let line = rawLine.trim();
+                
+                // [FIXED] Skip empty lines or comments BEFORE checking any errors (like checking "_" or indentations)
+                if (line === "" || line.startsWith("#")) {
+                    i++;
+                    continue;
+                }
+
+                // [SUPER-FIXED] Exclude ALL legitimate functions (with underscore) before validating placeholder check!
+                const underscoreCheckLine = line
+                    .replace(/move_forward/g, "")
+                    .replace(/turn_left/g, "")
+                    .replace(/turn_right/g, "");
+                    
+                if (underscoreCheckLine.includes("_")) {
+                    hasError = true;
+                    errorText = `ตรวจพบอักขระว่าง '_' ที่บรรทัด ${i + 1}. กรุณาระบุเป็นตัวเลขก้าวเดินแทน เช่น: move_forward(5) หรือ turn_left(1)`;
+                    break;
+                }
+
+                // Match basic for loop
+                // "for i in range(N):"
+                const forMatch = line.match(/^for\s+(\w+)\s+in\s+range\s*\(\s*(\d+)\s*\)\s*:/);
+                if (forMatch) {
+                    const loopVar = forMatch[1];
+                    const loopCount = parseInt(forMatch[2]);
+                    
+                    if (isNaN(loopCount) || loopCount <= 0) {
+                        hasError = true;
+                        errorText = `โครงสร้าง Loop 'range' ต้องใส่จำนวนรอบที่ถูกต้องที่บรรทัด ${i + 1}`;
+                        break;
+                    }
+
+                    // Look for indented blocks below this loop
+                    let blockLines = [];
+                    let j = i + 1;
+                    while (j < lines.length) {
+                        const nextRawLine = lines[j];
+                        const nextLine = nextRawLine.trim();
+                        
+                        // If empty line or comment, we can skip or include it safely
+                        if (nextLine === "" || nextLine.startsWith("#")) {
+                            j++;
+                            continue;
+                        }
+                        
+                        // Check if line is indented with spaces
+                        const indentMatch = nextRawLine.match(/^(\s+)(.*)/);
+                        if (indentMatch && indentMatch[1].length >= 2) {
+                            blockLines.push(indentMatch[2].trim());
+                            j++;
+                        } else {
+                            break; // Out of loop block
+                        }
+                    }
+
+                    if (blockLines.length === 0) {
+                        hasError = true;
+                        errorText = `ข้อผิดพลาดการย่อหน้า (IndentationError): บรรทัดที่ ${i + 2} คาดหวังการย่อหน้าย่อยภายใต้เงื่อนไข For Loop`;
+                        break;
+                    }
+
+                    // Duplicate the action block
+                    for (let c = 0; c < loopCount; c++) {
+                        for (let b = 0; b < blockLines.length; b++) {
+                            const subLine = blockLines[b];
+                            if (subLine === "" || subLine.startsWith("#")) continue;
+                            
+                            // Prevent inner "_" (excluding actual underscored commands)
+                            const subUnderscoreCheck = subLine
+                                .replace(/move_forward/g, "")
+                                .replace(/turn_left/g, "")
+                                .replace(/turn_right/g, "");
+                                
+                            if (subUnderscoreCheck.includes("_")) {
+                                hasError = true;
+                                errorText = `ตรวจพบอักขระว่าง '_' ภายใต้ลูปบรรทัดที่ ${i + 1}. กรุณาระบุเป็นตัวเลขในวงเล็บ`;
+                                break;
+                            }
+                            
+                            const parsed = parseSingleCommand(subLine, i + 1 + b);
+                            if (parsed.error) {
+                                hasError = true;
+                                errorText = parsed.error;
+                                break;
+                            }
+                        }
+                        if (hasError) break;
+                    }
+
+                    if (hasError) break;
+                    i = j; // Advance outer index
+                    continue;
+                }
+
+                // Check for unexpected Indent on regular line
+                const indentMatch = rawLine.match(/^(\s+)(.*)/);
+                if (indentMatch && indentMatch[1].length > 0) {
+                    hasError = true;
+                    errorText = `การย่อหน้าไม่ถูกต้อง (IndentationError) ที่บรรทัด ${i + 1}`;
+                    break;
+                }
+
+                // Parse standard linear action
+                const parsed = parseSingleCommand(line, i + 1);
+                if (parsed.error) {
+                    hasError = true;
+                    errorText = parsed.error;
+                    break;
+                }
+
+                i++;
+            }
+
+            if (hasError) {
+                printConsole(errorText, "error");
+                customAlert("มีข้อผิดพลาดทางไวยากรณ์!", errorText, "error");
+                return;
+            }
+
+            // Run Simulator queue on layout
+            if (actionsQueue.length === 0) {
+                printConsole("ไม่พบชุดคำสั่งทำงาน กรุณาลองพิมพ์ย่อหน้าหรือเช็คเครื่องหมายวงเล็บ", "error");
+                return;
+            }
+
+            executeAnimationChain();
+        }
+
+        // Match individual actions (UPGRADED to support turn params)
+        function parseSingleCommand(line, lineNum) {
+            // move_forward(N)
+            const moveMatch = line.match(/^move_forward\s*\(\s*(\d*)\s*\)/);
+            if (moveMatch) {
+                let steps = moveMatch[1] === "" ? 1 : parseInt(moveMatch[1]);
+                for (let s = 0; s < steps; s++) {
+                    actionsQueue.push({ type: "move", line: lineNum });
+                }
+                return { success: true };
+            }
+
+            // turn_left(N) or turn_left()
+            const leftMatch = line.match(/^turn_left\s*\(\s*(\d*)\s*\)/);
+            if (leftMatch) {
+                let steps = leftMatch[1] === "" ? 1 : parseInt(leftMatch[1]);
+                for (let s = 0; s < steps; s++) {
+                    actionsQueue.push({ type: "left", line: lineNum });
+                }
+                return { success: true };
+            }
+
+            // turn_right(N) or turn_right()
+            const rightMatch = line.match(/^turn_right\s*\(\s*(\d*)\s*\)/);
+            if (rightMatch) {
+                let steps = rightMatch[1] === "" ? 1 : parseInt(rightMatch[1]);
+                for (let s = 0; s < steps; s++) {
+                    actionsQueue.push({ type: "right", line: lineNum });
+                }
+                return { success: true };
+            }
+
+            return { error: `ไม่รู้จักคำสั่ง "${line}" ที่บรรทัด ${lineNum}. คำสั่งที่ใช้ได้คือ move_forward(), turn_left(), หรือ turn_right()` };
+        }
+
+        // Execute sequential movements visually
+        function executeAnimationChain() {
+            if (actionsQueue.length === 0) {
+                verifyVictoryCondition();
+                return;
+            }
+
+            runningAnimation = true;
+            const action = actionsQueue.shift();
+            const level = LEVELS[currentLevelIdx];
+            
+            printConsole(`กำลังรันคำสั่งบรรทัดที่ ${action.line}...`, "system");
+
+            let hitObstacle = false;
+
+            if (action.type === "left") {
+                // Turn Left
+                if (charDir === "N") charDir = "W";
+                else if (charDir === "W") charDir = "S";
+                else if (charDir === "S") charDir = "E";
+                else if (charDir === "E") charDir = "N";
+            } else if (action.type === "right") {
+                // Turn Right
+                if (charDir === "N") charDir = "E";
+                else if (charDir === "E") charDir = "S";
+                else if (charDir === "S") charDir = "W";
+                else if (charDir === "W") charDir = "N";
+            } else if (action.type === "move") {
+                // Calc next steps coordinates
+                let nextX = charX;
+                let nextY = charY;
+
+                if (charDir === "N") nextY--;
+                else if (charDir === "E") nextX++;
+                else if (charDir === "S") nextY++;
+                else if (charDir === "W") nextX--;
+
+                // Check bounds and collision
+                if (nextX < 0 || nextX >= level.width || nextY < 0 || nextY >= level.height) {
+                    hitObstacle = true;
+                } else if (level.grid[nextY][nextX] === 0) {
+                    hitObstacle = true;
+                } else {
+                    // Valid step
+                    charX = nextX;
+                    charY = nextY;
+
+                    // Eat coins
+                    const activeCoin = coinsPositions.find(coin => coin.x === charX && coin.y === charY && !coin.collected);
+                    if (activeCoin) {
+                        activeCoin.collected = true;
+                        collectedCoinsCount++;
+                        document.getElementById("capturedCoins").textContent = collectedCoinsCount;
+                        printConsole("สุดยอด! เก็บเหรียญเพิ่มสำเร็จ!", "success");
+                    }
+                }
+            }
+
+            renderBoard();
+
+            if (hitObstacle) {
+                runningAnimation = false;
+                printConsole("โอย! ตกเหวหรือเดินชนผนังตารางด้านข้างซะแล้ว!", "error");
+                customAlert("ชนสิ่งกีดขวาง!", "ตัวละครชนเหวหรือขอบแผนที่ กรุณารีเซ็ตแล้วปรับโค้ดความยาวช่องให้ถูกต้อง", "error");
+                return;
+            }
+
+            // Loop again
+            setTimeout(executeAnimationChain, 500);
+        }
+
+        // Checking targets accomplishment
+        function verifyVictoryCondition() {
+            runningAnimation = false;
+            const totalTargetCoins = coinsPositions.length;
+
+            if (collectedCoinsCount === totalTargetCoins) {
+                printConsole("ยอดเยี่ยมมาก! คุณผ่านด่านอย่างสมบูรณ์!", "success");
+                showSuccessClear();
+            } else {
+                printConsole("คำสั่งเสร็จสิ้น แต่คุณยังไม่ได้เก็บเหรียญทองให้ครบเลย!", "error");
+                customAlert("เก็บเหรียญไม่ครบ!", "ลองปรับจำนวนก้าวเดินหรือเขียนโค้ดเพิ่มเพื่อไปให้ถึงตำแหน่งเหรียญนะครับ", "error");
+            }
+        }
+
+        // UI toggles
+        function openHelpModal() {
+            document.getElementById("helpModal").classList.remove("hidden");
+        }
+
+        function closeHelpModal() {
+            document.getElementById("helpModal").classList.add("hidden");
+        }
+
+        function resetWholeProgress() {
+            if (confirm("คุณต้องการล้างคะแนนและความคืบหน้าทั้งหมดหรือไม่?")) {
+                localStorage.clear();
+                totalScore = 0;
+                document.getElementById("totalCoinsCount").textContent = "0";
+                loadLevel(0);
+            }
+        }
+    </script>
+</body>
+</html>
