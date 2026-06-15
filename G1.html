@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KMS_KidsCanCode</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Sarabun -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles & animations that are easier to define in CSS */
+        body { font-family: 'Sarabun', sans-serif; }
+        
+        .coin-shadow {
+            box-shadow: 0 0 15px rgba(253, 224, 71, 0.6);
+        }
+        
+        .wall-pattern {
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.2) 10px, rgba(0,0,0,0.2) 20px);
+        }
+
+        .robot-transition {
+            transition: left 0.5s ease-in-out, top 0.5s ease-in-out, transform 0.3s, filter 0.3s;
+        }
+
+        @keyframes bounce-slow {
+            0%, 100% { transform: translateY(-5%); }
+            50% { transform: translateY(5%); }
+        }
+        .animate-bounce-slow {
+            animation: bounce-slow 2s infinite;
+        }
+    </style>
+</head>
+<body class="bg-[#0d1f3d] h-screen w-full overflow-hidden flex flex-col m-0 p-0 text-slate-800 select-none">
+
+    <!-- Top Navigation Bar -->
+    <div class="flex items-center justify-between px-4 py-3 bg-[#112240] text-white shadow-md z-10">
+        <div class="flex items-center space-x-4">
+            <button class="flex items-center text-gray-300 hover:text-white transition-colors cursor-pointer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="m15 18-6-6 6-6"/></svg>
+                <span class="ml-1 font-semibold tracking-wide">หลักสูตร</span>
+            </button>
+            <div class="h-6 w-px bg-slate-600 mx-2"></div>
+            <span class="font-bold text-blue-400 tracking-wider">KMS_KidsCanCode</span>
+        </div>
+        <div class="flex items-center space-x-6 text-gray-400">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5 hover:text-white cursor-pointer transition-colors"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5-3V4l5 3 5-3 5 3v13l-5-3-5 3z"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5 hover:text-white cursor-pointer transition-colors"><path stroke-linecap="round" stroke-linejoin="round" d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5 hover:text-white cursor-pointer transition-colors"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="flex flex-1 overflow-hidden">
+        
+        <!-- LEFT PANEL (Code Editor) -->
+        <div class="w-[40%] min-w-[320px] bg-[#0A192F] flex flex-col border-r border-[#1e365d] relative z-0">
+            
+            <!-- Workspace Area -->
+            <div class="flex-1 p-6 flex flex-col gap-4 overflow-y-auto">
+                <div class="min-h-[250px] border-2 border-blue-800 rounded-lg bg-[#0d213f] p-4 shadow-inner flex flex-wrap content-start gap-2" id="workspace">
+                    <!-- Blocks will be injected here via JS -->
+                </div>
+
+                <!-- Input Palette -->
+                <div class="mt-4">
+                    <h3 class="text-white font-bold mb-4">เลือกคำสั่ง</h3>
+                    <div class="flex gap-4">
+                        <button onclick="addBlock('LEFT')" class="btn-input w-16 h-16 bg-[#1E88E5] rounded-xl flex items-center justify-center shadow-[0_4px_0_#1565C0] active:translate-y-1 active:shadow-none hover:bg-blue-400 transition-all text-white">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="m15 18-6-6 6-6"/></svg>
+                        </button>
+                        <button onclick="addBlock('UP')" class="btn-input w-16 h-16 bg-[#1E88E5] rounded-xl flex items-center justify-center shadow-[0_4px_0_#1565C0] active:translate-y-1 active:shadow-none hover:bg-blue-400 transition-all text-white">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="m18 15-6-6-6 6"/></svg>
+                        </button>
+                        <button onclick="addBlock('DOWN')" class="btn-input w-16 h-16 bg-[#1E88E5] rounded-xl flex items-center justify-center shadow-[0_4px_0_#1565C0] active:translate-y-1 active:shadow-none hover:bg-blue-400 transition-all text-white">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>
+                        </button>
+                        <button onclick="addBlock('RIGHT')" class="btn-input w-16 h-16 bg-[#1E88E5] rounded-xl flex items-center justify-center shadow-[0_4px_0_#1565C0] active:translate-y-1 active:shadow-none hover:bg-blue-400 transition-all text-white">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="m9 18 6-6-6-6"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="p-6 flex gap-4 bg-[#0A192F]">
+                <button onclick="handleResetCode()" class="flex-1 py-4 bg-white text-slate-700 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-gray-100 active:bg-gray-200 transition-colors shadow-sm">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path stroke-linecap="round" stroke-linejoin="round" d="M3 3v5h5"/></svg>
+                    เริ่มใหม่
+                </button>
+                <button id="btn-play" onclick="executeCode()" class="flex-1 py-4 font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm bg-white text-slate-800 hover:bg-gray-100 active:bg-gray-200">
+                    <svg id="icon-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3l14 9-14 9V3z"/></svg>
+                    เล่น
+                </button>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL (Game Canvas) -->
+        <div class="w-[60%] bg-[#112240] relative flex flex-col">
+            
+            <!-- Header Info -->
+            <div class="flex justify-between items-center p-6 text-white font-bold">
+                <div class="flex items-center gap-2 bg-slate-800/50 px-4 py-2 rounded-full border border-slate-700">
+                    <div class="w-6 h-6 bg-gradient-to-b from-yellow-300 to-yellow-500 rounded-full border-2 border-yellow-600 flex items-center justify-center shadow-[0_0_8px_rgba(253,224,71,0.5)]">
+                        <span class="text-yellow-800 text-xs font-black">$</span>
+                    </div>
+                    <span id="score-text">0/0</span>
+                </div>
+                <div class="text-lg tracking-widest text-slate-300" id="level-text">
+                    ด่าน 1 - 50
+                </div>
+            </div>
+
+            <!-- Game Grid Container -->
+            <div class="flex-1 flex items-center justify-center p-8">
+                <div id="grid-container" class="bg-[#0A192F] rounded-xl shadow-2xl p-2 relative w-full max-w-[600px] aspect-square grid gap-2">
+                    <!-- Grid Cells and Robot will be injected here via JS -->
+                </div>
+            </div>
+
+            <!-- Overlays -->
+            <div id="overlay-success" class="hidden absolute inset-0 bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center z-50">
+                <div class="text-6xl mb-4 animate-bounce-slow">🌟</div>
+                <h2 class="text-4xl font-bold text-white mb-6">ยอดเยี่ยมมาก!</h2>
+                <button id="btn-next-level" onclick="nextLevel()" class="bg-green-500 hover:bg-green-600 text-white text-xl font-bold py-4 px-12 rounded-full shadow-lg shadow-green-500/30 transition-transform hover:scale-105 active:scale-95">
+                    ด่านต่อไป
+                </button>
+                <div id="text-all-clear" class="hidden text-2xl text-yellow-400 font-bold">คุณเคลียร์ครบ 50 ด่านแล้ว! 🎉</div>
+            </div>
+
+            <div id="overlay-fail" class="hidden absolute inset-0 bg-red-900/40 backdrop-blur-sm flex flex-col items-center justify-center z-50">
+                <h2 class="text-4xl font-bold text-white mb-6 drop-shadow-lg">อุ๊ปส์! ลองใหม่อีกครั้งนะ</h2>
+                <button onclick="resetLevelState()" class="bg-white text-red-600 text-xl font-bold py-4 px-12 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95 flex items-center gap-2">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path stroke-linecap="round" stroke-linejoin="round" d="M3 3v5h5"/></svg>
+                    เริ่มด่านนี้ใหม่
+                </button>
+            </div>
+
+            <!-- Footer Decoration & Buddy -->
+            <div class="h-16 w-full bg-[#0a162b] border-t border-slate-700/50 absolute bottom-0 flex items-center px-4 overflow-hidden pointer-events-none">
+                 <div class="flex gap-8 opacity-20">
+                     <div class="w-12 h-8 border-2 border-cyan-500 rounded flex items-center justify-center"><div class="w-8 h-2 bg-cyan-500"></div></div>
+                     <div class="w-8 h-8 rounded-full border-2 border-purple-500 flex items-center justify-center"><div class="w-2 h-2 bg-purple-500 rounded-full"></div></div>
+                     <div class="w-24 h-4 border-y-2 border-blue-500"></div>
+                 </div>
+            </div>
+
+            <!-- Buddy Icon -->
+            <div class="absolute bottom-6 right-6 z-20 flex flex-col items-center">
+                <div class="w-16 h-16 bg-white rounded-full border-4 border-slate-800 shadow-xl flex items-center justify-center text-3xl overflow-hidden cursor-pointer hover:scale-105 transition-transform">
+                    <div class="bg-[#1e3a8a] w-full h-full flex items-center justify-center">
+                         <div class="w-10 h-6 bg-yellow-400 rounded-full relative">
+                                <div class="absolute top-1 left-2 w-2 h-2 bg-slate-900 rounded-full"></div>
+                                <div class="absolute top-1 right-2 w-2 h-2 bg-slate-900 rounded-full"></div>
+                         </div>
+                    </div>
+                </div>
+                <span class="text-white text-sm font-bold mt-2 bg-slate-800 px-3 py-1 rounded-full border border-slate-700">Buddy</span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- GAME LOGIC SCRIPT -->
+    <script>
+        // --- Game Data & State ---
+        const generateLevels = () => {
+            const levels = [];
+            // 1-5: มือใหม่ (ง่ายมาก)
+            levels.push({ id: 1, grid: { w: 3, h: 1 }, start: {x: 0, y: 0}, coins: [{x: 2, y: 0}], walls: [] });
+            levels.push({ id: 2, grid: { w: 4, h: 1 }, start: {x: 0, y: 0}, coins: [{x: 3, y: 0}], walls: [] });
+            levels.push({ id: 3, grid: { w: 3, h: 3 }, start: {x: 0, y: 0}, coins: [{x: 2, y: 2}], walls: [] });
+            levels.push({ id: 4, grid: { w: 3, h: 3 }, start: {x: 0, y: 0}, coins: [{x: 2, y: 2}], walls: [{x: 1, y: 0}, {x: 1, y: 1}] });
+            levels.push({ id: 5, grid: { w: 4, h: 4 }, start: {x: 0, y: 3}, coins: [{x: 3, y: 0}], walls: [{x: 1, y: 3}, {x: 2, y: 1}, {x: 3, y: 2}] });
+
+            // 6-50: สร้างอัตโนมัติ ไล่ระดับความยาก
+            for (let i = 6; i <= 50; i++) {
+                const size = Math.min(8, 3 + Math.floor(i / 10));
+                const w = size;
+                const h = size;
+                
+                const start = { x: 0, y: h - 1 };
+                const coins = [{ x: w - 1, y: 0 }];
+                const walls = [];
+
+                const numWalls = Math.floor(i / 5);
+                for (let j = 0; j < numWalls; j++) {
+                    const wx = Math.floor(Math.random() * w);
+                    const wy = Math.floor(Math.random() * h);
+                    if ((wx !== start.x || wy !== start.y) && (wx !== coins[0].x || wy !== coins[0].y)) {
+                        if (!walls.some(wall => wall.x === wx && wall.y === wy)) {
+                            walls.push({ x: wx, y: wy });
+                        }
+                    }
+                }
+                levels.push({ id: i, grid: { w, h }, start, coins, walls });
+            }
+            return levels;
+        };
+
+        const ALL_LEVELS = generateLevels();
+        
+        let state = {
+            levelIndex: 0,
+            blocks: [],
+            robotPos: { x: 0, y: 0 },
+            coinsLeft: [],
+            coinsCollected: 0,
+            status: 'idle', // idle, running, success, fail
+            activeBlockIndex: -1
+        };
+
+        // --- SVGs Definitions ---
+        const svgs = {
+            'LEFT': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="w-7 h-7 text-white"><path stroke-linecap="round" stroke-linejoin="round" d="m15 18-6-6 6-6"/></svg>',
+            'RIGHT': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="w-7 h-7 text-white"><path stroke-linecap="round" stroke-linejoin="round" d="m9 18 6-6-6-6"/></svg>',
+            'UP': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="w-7 h-7 text-white"><path stroke-linecap="round" stroke-linejoin="round" d="m18 15-6-6-6 6"/></svg>',
+            'DOWN': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="w-7 h-7 text-white"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>',
+            'PLAY': '<svg viewBox="0 0 24 24" fill="white" class="w-6 h-6 ml-1"><path d="M5 3l14 9-14 9V3z"/></svg>',
+            'X': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3 h-3 text-white"><path stroke-linecap="round" stroke-linejoin="round" d="M18 6 6 18M6 6l12 12"/></svg>'
+        };
+
+        // --- DOM Elements ---
+        const elWorkspace = document.getElementById('workspace');
+        const elGridContainer = document.getElementById('grid-container');
+        const elScoreText = document.getElementById('score-text');
+        const elLevelText = document.getElementById('level-text');
+        const elBtnPlay = document.getElementById('btn-play');
+        const elIconPlay = document.getElementById('icon-play');
+        const elOverlaySuccess = document.getElementById('overlay-success');
+        const elOverlayFail = document.getElementById('overlay-fail');
+        const elBtnNextLevel = document.getElementById('btn-next-level');
+        const elTextAllClear = document.getElementById('text-all-clear');
+        const btnInputs = document.querySelectorAll('.btn-input');
+
+        // --- Functions ---
+        function initLevel() {
+            const level = ALL_LEVELS[state.levelIndex];
+            state.robotPos = { ...level.start };
+            state.coinsLeft = [...level.coins];
+            state.coinsCollected = 0;
+            state.status = 'idle';
+            state.activeBlockIndex = -1;
+            
+            // Adjust Grid CSS
+            elGridContainer.style.gridTemplateColumns = `repeat(${level.grid.w}, minmax(0, 1fr))`;
+            elGridContainer.style.aspectRatio = `${level.grid.w} / ${level.grid.h}`;
+
+            updateUI();
+        }
+
+        function resetLevelState() {
+            initLevel();
+        }
+
+        function handleResetCode() {
+            state.blocks = [];
+            initLevel();
+        }
+
+        function addBlock(dir) {
+            if (state.status === 'running') return;
+            if (state.blocks.length >= 20) return;
+            state.blocks.push(dir);
+            renderWorkspace();
+            updatePlayButton();
+        }
+
+        function removeBlock(index) {
+            if (state.status === 'running') return;
+            state.blocks.splice(index, 1);
+            renderWorkspace();
+            updatePlayButton();
+        }
+
+        async function executeCode() {
+            if (state.blocks.length === 0 || state.status === 'running') return;
+            
+            // Reset to starting point before running
+            const level = ALL_LEVELS[state.levelIndex];
+            state.robotPos = { ...level.start };
+            state.coinsLeft = [...level.coins];
+            state.coinsCollected = 0;
+            state.status = 'running';
+            state.activeBlockIndex = -1;
+            
+            updateUI();
+            
+            let currentX = state.robotPos.x;
+            let currentY = state.robotPos.y;
+
+            await sleep(300);
+
+            for (let i = 0; i < state.blocks.length; i++) {
+                if (state.status !== 'running') break; // interrupted
+
+                state.activeBlockIndex = i;
+                renderWorkspace(); // highlight active block
+                
+                const block = state.blocks[i];
+                if (block === 'RIGHT') currentX++;
+                else if (block === 'LEFT') currentX--;
+                else if (block === 'DOWN') currentY++;
+                else if (block === 'UP') currentY--;
+
+                // Check boundaries
+                if (currentX < 0 || currentX >= level.grid.w || currentY < 0 || currentY >= level.grid.h) {
+                    state.status = 'fail';
+                    state.activeBlockIndex = -1;
+                    updateUI();
+                    return;
+                }
+
+                // Check walls
+                if (level.walls.some(w => w.x === currentX && w.y === currentY)) {
+                    state.status = 'fail';
+                    state.activeBlockIndex = -1;
+                    updateUI();
+                    return;
+                }
+
+                // Update position
+                state.robotPos = { x: currentX, y: currentY };
+                
+                // Check coins
+                const coinIndex = state.coinsLeft.findIndex(c => c.x === currentX && c.y === currentY);
+                if (coinIndex > -1) {
+                    state.coinsCollected++;
+                    state.coinsLeft.splice(coinIndex, 1);
+                }
+
+                updateUI(); // Move robot visually
+                await sleep(500);
+            }
+
+            state.activeBlockIndex = -1;
+            renderWorkspace();
+
+            if (state.coinsCollected >= level.coins.length) {
+                state.status = 'success';
+            } else {
+                state.status = 'fail';
+            }
+            updateUI();
+        }
+
+        function nextLevel() {
+            if (state.levelIndex < ALL_LEVELS.length - 1) {
+                state.levelIndex++;
+                state.blocks = [];
+                initLevel();
+            }
+        }
+
+        // --- Renderers ---
+        function renderWorkspace() {
+            let html = `
+                <div class="w-14 h-14 bg-emerald-500 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-500/20 z-10 shrink-0">
+                    ${svgs['PLAY']}
+                </div>
+            `;
+
+            state.blocks.forEach((block, index) => {
+                const isActive = state.activeBlockIndex === index;
+                const activeClasses = isActive ? 'ring-4 ring-yellow-400 scale-110 z-20' : 'z-10';
+                
+                html += `
+                    <div onclick="removeBlock(${index})" class="w-14 h-14 bg-[#1E88E5] rounded-lg flex items-center justify-center cursor-pointer hover:bg-blue-400 transition-all shrink-0 relative group shadow-md ${activeClasses}">
+                        ${svgs[block]}
+                        <div class="absolute -top-2 -right-2 bg-red-500 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            ${svgs['X']}
+                        </div>
+                    </div>
+                `;
+            });
+
+            if (state.blocks.length < 20) {
+                html += `<div class="w-14 h-14 border-2 border-dashed border-blue-700/50 rounded-lg flex items-center justify-center shrink-0"></div>`;
+            }
+
+            elWorkspace.innerHTML = html;
+        }
+
+        function renderGrid() {
+            const level = ALL_LEVELS[state.levelIndex];
+            let html = '';
+
+            // Draw Background Cells & Objects
+            for (let i = 0; i < level.grid.h * level.grid.w; i++) {
+                const x = i % level.grid.w;
+                const y = Math.floor(i / level.grid.w);
+                const isWall = level.walls.some(w => w.x === x && w.y === y);
+                const isCoin = state.coinsLeft.some(c => c.x === x && c.y === y);
+
+                const baseClass = isWall ? 'bg-slate-700 border-b-4 border-slate-900' : 'bg-[#e2e8f0] shadow-inner';
+                
+                let cellContent = '';
+                if (isWall) {
+                    cellContent = '<div class="w-full h-full wall-pattern rounded-lg"></div>';
+                } else if (isCoin) {
+                    cellContent = `
+                        <div class="animate-bounce z-10">
+                            <div class="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-b from-yellow-300 to-yellow-500 rounded-full border-[3px] border-yellow-600 flex items-center justify-center coin-shadow relative">
+                                <div class="absolute inset-[2px] border border-yellow-600/40 rounded-full"></div>
+                                <span class="text-yellow-800 text-lg md:text-xl font-black drop-shadow-sm">$</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                html += `<div class="rounded-lg flex items-center justify-center relative ${baseClass}">${cellContent}</div>`;
+            }
+
+            // Draw Robot Overlay
+            const robotWidth = 100 / level.grid.w;
+            const robotHeight = 100 / level.grid.h;
+            const robotLeft = (state.robotPos.x / level.grid.w) * 100;
+            const robotTop = (state.robotPos.y / level.grid.h) * 100;
+
+            let robotClasses = "absolute z-20 flex items-center justify-center text-4xl md:text-6xl drop-shadow-lg robot-transition";
+            if (state.status === 'fail') robotClasses += " grayscale opacity-80 rotate-180";
+            if (state.status === 'success') robotClasses += " animate-bounce";
+
+            html += `
+                <div class="${robotClasses}" style="width: ${robotWidth}%; height: ${robotHeight}%; left: ${robotLeft}%; top: ${robotTop}%;">
+                    🤖
+                </div>
+            `;
+
+            elGridContainer.innerHTML = html;
+        }
+
+        function updateUI() {
+            const level = ALL_LEVELS[state.levelIndex];
+            
+            // Header
+            elScoreText.innerText = `${state.coinsCollected}/${level.coins.length}`;
+            elLevelText.innerText = `ด่าน ${state.levelIndex + 1} - 50`;
+
+            // Grid
+            renderGrid();
+            renderWorkspace();
+            
+            // Overlays
+            if (state.status === 'success') {
+                elOverlaySuccess.classList.remove('hidden');
+                if (state.levelIndex >= ALL_LEVELS.length - 1) {
+                    elBtnNextLevel.classList.add('hidden');
+                    elTextAllClear.classList.remove('hidden');
+                } else {
+                    elBtnNextLevel.classList.remove('hidden');
+                    elTextAllClear.classList.add('hidden');
+                }
+            } else {
+                elOverlaySuccess.classList.add('hidden');
+            }
+
+            if (state.status === 'fail') {
+                elOverlayFail.classList.remove('hidden');
+            } else {
+                elOverlayFail.classList.add('hidden');
+            }
+
+            // Inputs disabled state
+            btnInputs.forEach(btn => {
+                if (state.status === 'running') {
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            });
+
+            updatePlayButton();
+        }
+
+        function updatePlayButton() {
+            const isRunning = state.status === 'running';
+            const noBlocks = state.blocks.length === 0;
+            
+            if (isRunning || noBlocks) {
+                elBtnPlay.classList.add('bg-gray-400', 'text-gray-200', 'cursor-not-allowed');
+                elBtnPlay.classList.remove('bg-white', 'text-slate-800', 'hover:bg-gray-100', 'active:bg-gray-200');
+                elIconPlay.classList.remove('text-green-500');
+                elIconPlay.setAttribute('fill', 'none');
+            } else {
+                elBtnPlay.classList.remove('bg-gray-400', 'text-gray-200', 'cursor-not-allowed');
+                elBtnPlay.classList.add('bg-white', 'text-slate-800', 'hover:bg-gray-100', 'active:bg-gray-200');
+                elIconPlay.classList.add('text-green-500');
+                elIconPlay.setAttribute('fill', 'currentColor');
+            }
+        }
+
+        // --- Helpers ---
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // --- Initialize App ---
+        initLevel();
+
+    </script>
+</body>
+</html>
